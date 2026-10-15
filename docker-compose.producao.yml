@@ -1,0 +1,21 @@
+# Koube Produção — sobe a API (que já serve o frontend) no Docker da VM.
+# O Postgres já existe na VM; este serviço conecta nele (database koube_producao).
+#
+# Deploy (na VM):
+#   docker compose -f docker-compose.producao.yml up -d --build producao-api
+services:
+  producao-api:
+    build: .
+    container_name: producao-api
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8010:8000"      # Nginx faz o proxy do subdomínio para esta porta
+    networks:
+      - koube-net
+
+networks:
+  koube-net:
+    external: true
+    name: app_net
