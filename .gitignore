@@ -1,0 +1,51 @@
+# ── credenciais e ambiente ──
+.env
+.env.local
+*.env
+!.env.example
+
+# ── dados reais: nunca versionar ──
+# dumps de banco, exports e planilhas de produção
+*.sql.gz
+*.dump
+backups/
+dados-reais/
+*.xlsx
+*.xls
+*.csv
+
+# fotos de colaboradores
+fotos/
+*.jpg
+*.jpeg
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ── editor e sistema ──
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── logs e temporários ──
+*.log
+tmp/
+temp/
