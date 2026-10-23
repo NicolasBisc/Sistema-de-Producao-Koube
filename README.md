@@ -21,15 +21,18 @@ do Brasil** e em operação interna desde agosto de 2026.
 
 ## O problema
 
-O controle de produção e manutenção vivia em planilhas Excel paralelas: o
-REG 7002/7003 para preventiva, o REG 7001/7005 para ordens de serviço, e uma
-planilha separada para corretivas criada depois. Cada uma com sua numeração,
-seu responsável e sua versão "mais atual". Consequências rotineiras:
+O supervisor de produção organizava férias, programação de produção,
+treinamentos de RH e manutenções em planilhas espalhadas, cada uma com sua
+numeração, seu formato e sua versão "mais atual". Na prática:
 
 - vencimento de preventiva calculado à mão, com atraso descoberto tarde
-- ordens de serviço com numeração colidindo entre planilhas
+- ordens de serviço com numeração repetida entre planilhas
 - nenhum histórico de quem alterou o quê
 - indicadores montados manualmente a cada reunião
+
+O sistema reuniu essas informações em um só lugar e deu ao supervisor
+autonomia para consultar e acompanhar a operação sem depender de montar
+relatórios à mão.
 
 ## O que o sistema faz
 
@@ -44,13 +47,11 @@ ação e recalcula a próxima automaticamente. Corretiva e preventiva ficam
 separadas, cada uma no seu registro (REG 7001/7005 e REG 7002/7003).
 
 **Colaboradores** — cadastro, alocação em linhas e equipes, controle de
-férias com cálculo de direito e vencimento.
+férias com cálculo de direito e vencimento, e plano de treinamentos.
 
-**Auditoria** — toda alteração registra autor, ação, entidade e o valor
-antes e depois.
+**Histórico** — cada alteração fica registrada com quem fez e o que mudou.
 
-**Usuários** — autenticação com JWT, permissão por módulo, bloqueio por
-tentativas de login.
+**Usuários** — login com senha e acesso liberado por módulo.
 
 ---
 
@@ -58,13 +59,13 @@ tentativas de login.
 
 ```
 backend/
-  main.py        41 endpoints FastAPI
-  models.py      16 tabelas SQLAlchemy
-  schemas.py     validação Pydantic na entrada
+  main.py        rotas da API
+  models.py      tabelas do banco
+  schemas.py     validação dos dados recebidos
   logica.py      cálculo de vencimento, status e indicadores
-  security.py    hash de senha com bcrypt
-  protecao.py    rate limit e bloqueio por força bruta
-  auth.py        emissão e verificação de JWT
+  security.py    senhas
+  protecao.py    proteção contra tentativas repetidas de login
+  auth.py        sessão do usuário
 
 frontend/
   index.html     interface completa, sem dependência externa
@@ -72,12 +73,12 @@ frontend/
 db/
   schema.sql     estrutura
   seed*.sql      carga inicial
-  0*.sql         migrações numeradas, idempotentes
+  0*.sql         migrações numeradas
 
 scripts/
-  backup_koube.sh        dump diário com retenção de 30 dias
-  restaurar_backup.sh    restauração com confirmação
-  teste_sistema.py       suite de testes de interface
+  backup_koube.sh        backup diário do banco
+  restaurar_backup.sh    restauração do backup
+  teste_sistema.py       testes da interface
 ```
 
 ### Decisões que valem explicar
@@ -87,18 +88,16 @@ scripts/
 status. Nada de campo `status` no banco esperando alguém atualizar — a fonte
 da verdade é a data da execução.
 
-**Migrações idempotentes.** Cada `.sql` numerado pode rodar duas vezes sem
-efeito colateral, e aborta com mensagem clara se encontrar o banco num
-estado que não esperava. Uma delas trava explicitamente se a faixa de
-numeração que vai ocupar não estiver livre.
+**Migrações que podem rodar de novo.** Cada `.sql` numerado pode ser
+executado mais de uma vez sem estragar os dados, e para com uma mensagem
+clara se encontrar o banco num estado inesperado.
 
-**Frontend em arquivo único.** Sem build, sem bundler, sem `node_modules`.
-Serve direto do container FastAPI. Para um sistema interno mantido por uma
-pessoa, a simplicidade de implantação venceu a organização em módulos.
+**Frontend em arquivo único.** Sem etapa de build. Para um sistema interno
+mantido por uma pessoa, a simplicidade de implantação pesou mais que a
+organização em módulos.
 
-**Validação na entrada.** Todo endpoint de escrita recebe um schema
-Pydantic. Uma versão anterior aceitava `dict` cru em seis rotas, o que
-permitia quantidade negativa e periodicidade zero.
+**Validação na entrada.** Uma versão anterior aceitava quantidade negativa e
+periodicidade zero; hoje os dados são conferidos antes de gravar.
 
 ---
 
@@ -141,7 +140,7 @@ falhando se aparecer qualquer erro de JavaScript.
 
 ## Histórico técnico
 
-Alguns problemas reais encontrados e como foram resolvidos — o que mais
+Alguns problemas reais que encontrei e como resolvi — foi o que mais me
 ensinou neste projeto:
 
 | Problema | Causa | Correção |
